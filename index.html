@@ -1,0 +1,877 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LGNS 复投测算器</title>
+  <style>
+    :root {
+      --bg: #f4f6f8;
+      --panel: #ffffff;
+      --text: #172033;
+      --muted: #5f6b7a;
+      --line: #d9e0ea;
+      --soft: #f8fafc;
+      --accent: #0f6f7f;
+      --accent-soft: #e8f5f6;
+      --green: #137a43;
+      --red: #b42318;
+      --amber-bg: #fff7e6;
+      --amber-line: #f2d5a0;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    main {
+      width: min(1180px, calc(100vw - 28px));
+      margin: 20px auto;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 14px 34px rgba(23, 32, 51, 0.08);
+    }
+
+    header {
+      padding: 22px 24px;
+      border-bottom: 1px solid var(--line);
+      background: #fbfcfe;
+    }
+
+    h1,
+    h2,
+    h3 {
+      margin: 0;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    h1 {
+      font-size: 26px;
+    }
+
+    h2 {
+      font-size: 18px;
+      margin-bottom: 14px;
+    }
+
+    h3 {
+      font-size: 15px;
+      margin-bottom: 10px;
+    }
+
+    .subhead {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    section {
+      padding: 22px 24px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    section:last-child {
+      border-bottom: 0;
+    }
+
+    .input-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    label {
+      display: grid;
+      gap: 7px;
+      color: #273244;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    input,
+    select {
+      width: 100%;
+      height: 42px;
+      border: 1px solid #c8d1df;
+      border-radius: 6px;
+      padding: 0 11px;
+      color: var(--text);
+      background: #fff;
+      font: inherit;
+      font-size: 15px;
+    }
+
+    button {
+      height: 42px;
+      border: 0;
+      border-radius: 6px;
+      background: var(--accent);
+      color: #fff;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    button:hover {
+      background: #0b5f6d;
+    }
+
+    button.secondary {
+      background: #31445f;
+    }
+
+    button.secondary:hover {
+      background: #26354a;
+    }
+
+    .action-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      align-items: end;
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .metric {
+      min-height: 92px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .metric span {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 20px;
+      line-height: 1.25;
+    }
+
+    .metric small {
+      display: block;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 18px;
+    }
+
+    .panel {
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--soft);
+    }
+
+    .result-line {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.75;
+    }
+
+    .result-line strong {
+      color: var(--text);
+    }
+
+    .income-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .income-row {
+      display: grid;
+      grid-template-columns: 86px 1fr;
+      gap: 10px;
+      align-items: start;
+      padding: 11px;
+      border: 1px solid #dbe5ea;
+      border-radius: 8px;
+      background: #fff;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .income-row b {
+      color: var(--accent);
+    }
+
+    .compact-table {
+      margin-top: 12px;
+    }
+
+    .compact-table table {
+      min-width: 680px;
+    }
+
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    table {
+      width: 100%;
+      min-width: 900px;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th,
+    td {
+      padding: 12px 13px;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    th {
+      background: #f6f8fb;
+      font-weight: 700;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    th:last-child,
+    td:last-child {
+      border-right: 0;
+    }
+
+    .good {
+      color: var(--green);
+      font-weight: 700;
+    }
+
+    .bad {
+      color: var(--red);
+      font-weight: 700;
+    }
+
+    .note {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .warning {
+      margin-top: 14px;
+      padding: 13px;
+      border: 1px solid var(--amber-line);
+      border-radius: 8px;
+      background: var(--amber-bg);
+      color: #65420b;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .status {
+      margin-top: 10px;
+      min-height: 20px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 900px) {
+      .input-grid,
+      .dashboard,
+      .two-col {
+        grid-template-columns: 1fr;
+      }
+
+      .action-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 560px) {
+      main {
+        width: calc(100vw - 16px);
+        margin: 8px auto;
+      }
+
+      header,
+      section {
+        padding: 18px;
+      }
+
+      h1 {
+        font-size: 22px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>LGNS 复投测算器</h1>
+      <p class="subhead">先填核心变量，再看结果。DAI 按美元稳定币处理：1 DAI = 1 USD；LGNS 枚数 = DAI 金额 ÷ LGNS 币价。</p>
+    </header>
+
+    <section>
+      <h2>1. 核心输入</h2>
+      <div class="input-grid">
+        <label>
+          总资产变量（USD）
+          <input id="totalAssetUsd" type="number" min="0" step="any" value="28000">
+        </label>
+
+        <label>
+          LGNS 当前币价（USD）
+          <input id="assetPrice" type="number" min="0" step="any" value="2.8">
+        </label>
+
+        <label>
+          当前持币量（LGNS）
+          <input id="assetAmount" type="number" min="0" step="any" value="10000">
+        </label>
+
+        <label>
+          参与本金（DAI / USD）
+          <input id="principalDai" type="number" min="0" step="any" value="10000">
+        </label>
+
+        <label>
+          参与币量（LGNS）
+          <input id="participationLgnsAmount" type="number" min="0" step="any" value="3571.428571">
+        </label>
+
+        <label>
+          收益测算天数
+          <input id="incomeEstimateDay" type="number" min="0" step="any" value="30">
+        </label>
+
+        <label>
+          参与方式
+          <select id="participationType">
+            <option value="DAI">用 DAI 参与</option>
+            <option value="LGNS">用 LGNS 参与</option>
+          </select>
+        </label>
+
+        <label>
+          复投规则
+          <select id="reinvestMode">
+            <option value="compound">复投</option>
+            <option value="simple">不复投</option>
+          </select>
+        </label>
+
+        <div class="action-row">
+          <button type="button" id="useTotalAsPrincipal">用总资产参与</button>
+          <button type="button" class="secondary" id="refreshRate">更新 USD/CNY</button>
+        </div>
+      </div>
+      <div class="status" id="rateStatus"></div>
+    </section>
+
+    <section>
+      <h2>2. 一眼看结果</h2>
+      <div class="dashboard" id="topMetrics"></div>
+    </section>
+
+    <section>
+      <h2>3. 参与方案</h2>
+      <div class="two-col">
+        <div class="panel">
+          <h3>本金换算</h3>
+          <p class="result-line" id="conversionResult"></p>
+        </div>
+
+        <div class="panel">
+          <h3>当前规则结论</h3>
+          <p class="result-line" id="ruleConclusion"></p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>4. 日收益 / 月收益 / 年收益</h2>
+      <div class="income-list" id="incomeGrowthResult"></div>
+      <div class="table-wrap compact-table">
+        <table>
+          <thead>
+            <tr>
+              <th>月份</th>
+              <th>月释放 DAI</th>
+              <th>资产价值 USD</th>
+              <th>到账 LGNS</th>
+            </tr>
+          </thead>
+          <tbody id="monthlyIncomeRows"></tbody>
+        </table>
+      </div>
+      <p class="note" id="incomeNote"></p>
+    </section>
+
+    <section>
+      <h2>5. 规则对比表</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>参与方式</th>
+              <th>算力</th>
+              <th>复投规则</th>
+              <th>回本天数</th>
+              <th>释放完毕天数</th>
+              <th>累计释放 DAI</th>
+              <th>到账 LGNS</th>
+              <th>释放倍数</th>
+              <th>一年后倍数</th>
+            </tr>
+          </thead>
+          <tbody id="ruleRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2>6. 币价变化影响</h2>
+      <div class="two-col">
+        <div class="panel">
+          <h3>到账币量测算</h3>
+          <div class="input-grid">
+            <label>
+              每天释放 DAI
+              <input id="dailyReleaseDai" type="number" min="0" step="any" value="80">
+            </label>
+
+            <label>
+              假设币价（USD）
+              <input id="impactTokenPrice" type="number" min="0" step="any" value="2.8">
+            </label>
+          </div>
+          <p class="result-line" id="priceImpactResult"></p>
+        </div>
+
+        <div class="panel">
+          <h3>解释</h3>
+          <p class="result-line">
+            回本天数不看币价：复投 87 天，不复投 125 天。币价涨时到账枚数变少，币价跌时到账枚数变多，但释放的 DAI 价值不变。
+          </p>
+          <div class="warning">风险提示：如果 LGNS 价格接近 0，虽然按 DAI 等值会对应很多枚 LGNS，但这些币的市值也可能接近 0。</div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>7. 币量指数增长预测</h2>
+      <div class="input-grid">
+        <label>
+          币价（USD）
+          <input id="price" type="number" min="0" step="any" value="2.8">
+        </label>
+
+        <label>
+          初始币量（LGNS）
+          <input id="amount" type="number" min="0" step="any" value="10000">
+        </label>
+
+        <label>
+          经过天数
+          <input id="days" type="number" min="0" step="any" value="1">
+        </label>
+
+        <label>
+          额外小时数
+          <input id="hours" type="number" min="0" step="any" value="0">
+        </label>
+
+        <label>
+          USD/CNY 汇率
+          <input id="usdCnyRate" type="number" min="0" step="any" value="7.25">
+        </label>
+
+        <button type="button" id="calculate">重新计算预测</button>
+      </div>
+      <p class="result-line" id="growthResult"></p>
+      <p class="note">币量每 8 小时增加 0.15%，每天增长 3 次。Value（USD）= 币价 × 增长后币量。</p>
+    </section>
+  </main>
+
+  <script>
+    const exchangeRateApiUrl = "https://open.er-api.com/v6/latest/USD";
+
+    const ruleTemplates = [
+      { type: "DAI", power: 2.5, mode: "simple", paybackDays: 125, finishDays: 312.5, releasedDai: 25000, multiplier: 2.5, yearlyMultiplier: 3.65 },
+      { type: "DAI", power: 2.5, mode: "compound", paybackDays: 87, finishDays: 312.5, releasedDai: 73000, multiplier: 7.3, yearlyMultiplier: 9.7 },
+      { type: "LGNS", power: 2.3, mode: "simple", paybackDays: 125, finishDays: 287.5, releasedDai: 23000, multiplier: 2.3, yearlyMultiplier: 3.65 },
+      { type: "LGNS", power: 2.3, mode: "compound", paybackDays: 87, finishDays: 287.5, releasedDai: 61200, multiplier: 6.12, yearlyMultiplier: 9.4 }
+    ];
+
+    let syncing = false;
+
+    function numberValue(id) {
+      return Number(document.getElementById(id).value);
+    }
+
+    function setValue(id, value, digits) {
+      document.getElementById(id).value = Number(value).toFixed(digits).replace(/\.?0+$/, "");
+    }
+
+    function formatNumber(value, maximumFractionDigits) {
+      return Number(value).toLocaleString("zh-CN", { maximumFractionDigits });
+    }
+
+    function formatMoney(value, currency) {
+      return Number(value).toLocaleString("zh-CN", {
+        style: "currency",
+        currency,
+        maximumFractionDigits: 2
+      });
+    }
+
+    function selectedTemplate() {
+      const type = document.getElementById("participationType").value;
+      const mode = document.getElementById("reinvestMode").value;
+      return ruleTemplates.find((item) => item.type === type && item.mode === mode);
+    }
+
+    function scaleRule(template, principal, tokenPrice) {
+      const scale = principal / 10000;
+      const releasedDai = template.releasedDai * scale;
+      return {
+        ...template,
+        releasedDai,
+        lgnsAmount: releasedDai / tokenPrice
+      };
+    }
+
+    function calculateIncome(rule, principal, tokenPrice, estimateDay) {
+      const baseDailyDai = principal / 125;
+      const maxDailyDai = 208.8 * (principal / 10000);
+      const boundedDay = Math.max(0, Math.min(estimateDay, rule.finishDays));
+      let dailyDai = baseDailyDai;
+
+      if (rule.mode === "compound") {
+        dailyDai = baseDailyDai * Math.pow(maxDailyDai / baseDailyDai, boundedDay / rule.finishDays);
+      }
+
+      return {
+        boundedDay,
+        baseDailyDai,
+        maxDailyDai,
+        dailyDai,
+        monthlyDai: dailyDai * 30,
+        dailyLgns: dailyDai / tokenPrice,
+        monthlyLgns: dailyDai * 30 / tokenPrice
+      };
+    }
+
+    function calculateMonthlyIncome(rule, principal, tokenPrice) {
+      const yearlyTotalDai = principal * rule.yearlyMultiplier;
+
+      if (rule.mode === "simple") {
+        const monthlyDai = yearlyTotalDai / 12;
+        return Array.from({ length: 12 }, (_, index) => ({
+          month: index + 1,
+          dai: monthlyDai,
+          usd: monthlyDai,
+          lgns: monthlyDai / tokenPrice
+        }));
+      }
+
+      const weights = Array.from({ length: 12 }, (_, index) => Math.pow(208.8 / 80, index / 11));
+      const weightTotal = weights.reduce((sum, value) => sum + value, 0);
+
+      return weights.map((weight, index) => {
+        const dai = yearlyTotalDai * weight / weightTotal;
+        return {
+          month: index + 1,
+          dai,
+          usd: dai,
+          lgns: dai / tokenPrice
+        };
+      });
+    }
+
+    function syncAssetFromTotal() {
+      if (syncing) return;
+      syncing = true;
+      const total = numberValue("totalAssetUsd");
+      const price = numberValue("assetPrice");
+      if (total >= 0 && price > 0 && Number.isFinite(total + price)) {
+        setValue("assetAmount", total / price, 6);
+      }
+      syncing = false;
+      syncParticipationFromPrincipal();
+      renderAll();
+    }
+
+    function syncTotalFromAssetAmount() {
+      if (syncing) return;
+      syncing = true;
+      const price = numberValue("assetPrice");
+      const amount = numberValue("assetAmount");
+      if (price >= 0 && amount >= 0 && Number.isFinite(price + amount)) {
+        setValue("totalAssetUsd", price * amount, 2);
+      }
+      syncing = false;
+      renderAll();
+    }
+
+    function syncParticipationFromPrincipal() {
+      if (syncing) return;
+      syncing = true;
+      const principal = numberValue("principalDai");
+      const tokenPrice = numberValue("assetPrice");
+      if (principal >= 0 && tokenPrice > 0 && Number.isFinite(principal + tokenPrice)) {
+        setValue("participationLgnsAmount", principal / tokenPrice, 6);
+      }
+      syncing = false;
+    }
+
+    function syncPrincipalFromParticipation() {
+      if (syncing) return;
+      syncing = true;
+      const amount = numberValue("participationLgnsAmount");
+      const tokenPrice = numberValue("assetPrice");
+      if (amount >= 0 && tokenPrice >= 0 && Number.isFinite(amount + tokenPrice)) {
+        setValue("principalDai", amount * tokenPrice, 2);
+      }
+      syncing = false;
+      renderAll();
+    }
+
+    function useTotalAsPrincipal() {
+      setValue("principalDai", numberValue("totalAssetUsd"), 2);
+      syncParticipationFromPrincipal();
+      renderAll();
+    }
+
+    function renderTopMetrics(selected, income, principal, tokenPrice, totalAssetUsd, assetAmount) {
+      document.getElementById("topMetrics").innerHTML = `
+        <div class="metric">
+          <span>总资产</span>
+          <strong>${formatMoney(totalAssetUsd, "USD")}</strong>
+          <small>${formatNumber(assetAmount, 4)} LGNS × ${formatMoney(tokenPrice, "USD")}</small>
+        </div>
+        <div class="metric">
+          <span>当前方案</span>
+          <strong>${selected.type} / ${selected.mode === "compound" ? "复投" : "不复投"}</strong>
+          <small>回本 ${formatNumber(selected.paybackDays, 1)} 天</small>
+        </div>
+        <div class="metric">
+          <span>累计释放</span>
+          <strong>${formatNumber(selected.releasedDai, 2)} DAI</strong>
+          <small>${formatNumber(selected.lgnsAmount, 4)} LGNS</small>
+        </div>
+        <div class="metric">
+          <span>第 ${formatNumber(income.boundedDay, 1)} 天日收益</span>
+          <strong>${formatNumber(income.dailyDai, 2)} DAI</strong>
+          <small>${formatNumber(income.dailyLgns, 4)} LGNS</small>
+        </div>
+      `;
+    }
+
+    function renderPlan(selected, simple, compound, income, principal, tokenPrice) {
+      const participationAmount = numberValue("participationLgnsAmount");
+      const extraDai = compound.releasedDai - simple.releasedDai;
+      const yearlyTotalDai = principal * selected.yearlyMultiplier;
+      const yearlyTotalLgns = yearlyTotalDai / tokenPrice;
+      const monthlyIncome = calculateMonthlyIncome(selected, principal, tokenPrice);
+
+      document.getElementById("conversionResult").innerHTML =
+        `<strong>${formatNumber(principal, 2)} DAI = ${formatMoney(principal, "USD")}</strong><br>` +
+        `按 LGNS 币价 ${formatMoney(tokenPrice, "USD")} 计算，参与币量约为 ` +
+        `<strong>${formatNumber(participationAmount, 4)} LGNS</strong>。<br>` +
+        `当前方案累计释放 ${formatNumber(selected.releasedDai, 2)} DAI，折合约 ${formatNumber(selected.lgnsAmount, 4)} LGNS。`;
+
+      document.getElementById("ruleConclusion").innerHTML =
+        `同样参与方式下，复投比不复投多释放 <strong>${formatNumber(extraDai, 2)} DAI</strong>。<br>` +
+        `复投回本 ${compound.paybackDays} 天，不复投回本 ${simple.paybackDays} 天。<br>` +
+        `当前选择的一年后倍数为 <strong>${formatNumber(selected.yearlyMultiplier, 2)} 倍</strong>。`;
+
+      document.getElementById("incomeGrowthResult").innerHTML = `
+        <div class="income-row"><b>当天</b><span>第 ${formatNumber(income.boundedDay, 1)} 天预计释放：${formatNumber(income.dailyDai, 2)} DAI / ${formatMoney(income.dailyDai, "USD")} / ${formatNumber(income.dailyLgns, 4)} LGNS</span></div>
+        <div class="income-row"><b>一年</b><span>按 ${formatNumber(selected.yearlyMultiplier, 2)} 倍规则：${formatNumber(yearlyTotalDai, 2)} DAI / ${formatMoney(yearlyTotalDai, "USD")} / ${formatNumber(yearlyTotalLgns, 4)} LGNS</span></div>
+      `;
+
+      document.getElementById("monthlyIncomeRows").innerHTML = monthlyIncome.map((item) => `
+        <tr>
+          <td>第 ${item.month} 月</td>
+          <td>${formatNumber(item.dai, 2)} DAI</td>
+          <td>${formatMoney(item.usd, "USD")}</td>
+          <td>${formatNumber(item.lgns, 4)} LGNS</td>
+        </tr>
+      `).join("");
+
+      document.getElementById("incomeNote").textContent = selected.mode === "compound"
+        ? `复投模式下，每月收益会逐月增加；上表把一年总释放 ${formatNumber(yearlyTotalDai, 2)} DAI 按复投增长曲线分配到 12 个月。`
+        : `不复投模式每日释放固定为 ${formatNumber(income.baseDailyDai, 2)} DAI；月收益按一年总释放平均到 12 个月。`;
+    }
+
+    function renderRulesTable(tokenPrice, principal) {
+      document.getElementById("ruleRows").innerHTML = ruleTemplates.map((template) => {
+        const item = scaleRule(template, principal, tokenPrice);
+        const modeLabel = item.mode === "compound" ? "复投" : "不复投";
+        const modeClass = item.mode === "compound" ? "good" : "bad";
+
+        return `
+          <tr>
+            <td>用 ${item.type}</td>
+            <td>${formatNumber(item.power, 2)} 倍</td>
+            <td class="${modeClass}">${modeLabel}</td>
+            <td>${formatNumber(item.paybackDays, 1)} 天</td>
+            <td>${formatNumber(item.finishDays, 1)} 天</td>
+            <td>${formatNumber(item.releasedDai, 2)} DAI</td>
+            <td>${formatNumber(item.lgnsAmount, 4)}</td>
+            <td>${formatNumber(item.multiplier, 2)} 倍</td>
+            <td>${formatNumber(item.yearlyMultiplier, 2)} 倍</td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function renderPriceImpact() {
+      const dailyRelease = numberValue("dailyReleaseDai");
+      const tokenPrice = numberValue("impactTokenPrice");
+      const result = document.getElementById("priceImpactResult");
+
+      if (dailyRelease <= 0 || tokenPrice <= 0 || !Number.isFinite(dailyRelease + tokenPrice)) {
+        result.textContent = "请输入大于 0 的释放金额和币价。";
+        return;
+      }
+
+      result.innerHTML =
+        `每天释放 <strong>${formatNumber(dailyRelease, 2)} DAI</strong> 等值 LGNS。<br>` +
+        `币价为 ${formatMoney(tokenPrice, "USD")} 时，每天到账约 <strong>${formatNumber(dailyRelease / tokenPrice, 4)} LGNS</strong>。`;
+    }
+
+    function calculateValue(coinPriceUsd, initialCoinAmount, elapsedHours, usdCnyRate) {
+      const growthTimes = Math.floor(elapsedHours / 8);
+      const currentCoinAmount = initialCoinAmount * Math.pow(1.0015, growthTimes);
+      const valueUsd = coinPriceUsd * currentCoinAmount;
+      const valueCny = valueUsd * usdCnyRate;
+      return { growthTimes, currentCoinAmount, valueUsd, valueCny };
+    }
+
+    function renderGrowthForecast() {
+      const price = numberValue("price");
+      const amount = numberValue("amount");
+      const days = numberValue("days");
+      const hours = numberValue("hours");
+      const rate = numberValue("usdCnyRate");
+      const result = document.getElementById("growthResult");
+
+      if (price < 0 || amount < 0 || days < 0 || hours < 0 || rate < 0 || !Number.isFinite(price + amount + days + hours + rate)) {
+        result.textContent = "请输入有效的非负数字。";
+        return;
+      }
+
+      const totalHours = days * 24 + hours;
+      const calculated = calculateValue(price, amount, totalHours, rate);
+      result.innerHTML =
+        `总小时数：<strong>${formatNumber(totalHours, 2)}</strong>；增长次数：<strong>${calculated.growthTimes}</strong>。<br>` +
+        `增长后币量：<strong>${formatNumber(calculated.currentCoinAmount, 8)} LGNS</strong>。<br>` +
+        `Value：<strong>${formatMoney(calculated.valueUsd, "USD")}</strong> / ${formatMoney(calculated.valueCny, "CNY")}。`;
+    }
+
+    function renderAll() {
+      const principal = numberValue("principalDai");
+      const tokenPrice = numberValue("assetPrice");
+      const totalAssetUsd = numberValue("totalAssetUsd");
+      const assetAmount = numberValue("assetAmount");
+      const estimateDay = numberValue("incomeEstimateDay");
+
+      if (principal <= 0 || tokenPrice <= 0 || estimateDay < 0 || !Number.isFinite(principal + tokenPrice + estimateDay + totalAssetUsd + assetAmount)) {
+        return;
+      }
+
+      setValue("price", tokenPrice, 6);
+      setValue("impactTokenPrice", tokenPrice, 6);
+
+      const selected = scaleRule(selectedTemplate(), principal, tokenPrice);
+      const simple = scaleRule(ruleTemplates.find((item) => item.type === selected.type && item.mode === "simple"), principal, tokenPrice);
+      const compound = scaleRule(ruleTemplates.find((item) => item.type === selected.type && item.mode === "compound"), principal, tokenPrice);
+      const income = calculateIncome(selected, principal, tokenPrice, estimateDay);
+
+      renderTopMetrics(selected, income, principal, tokenPrice, totalAssetUsd, assetAmount);
+      renderPlan(selected, simple, compound, income, principal, tokenPrice);
+      renderRulesTable(tokenPrice, principal);
+      renderPriceImpact();
+      renderGrowthForecast();
+    }
+
+    async function refreshExchangeRate() {
+      const rateInput = document.getElementById("usdCnyRate");
+      const status = document.getElementById("rateStatus");
+      status.textContent = "正在获取实时 USD/CNY 汇率...";
+
+      try {
+        const response = await fetch(exchangeRateApiUrl, { cache: "no-store" });
+        if (!response.ok) throw new Error("HTTP " + response.status);
+        const data = await response.json();
+        const rate = data && data.rates && data.rates.CNY;
+        if (!Number.isFinite(rate)) throw new Error("接口没有返回 CNY 汇率");
+        rateInput.value = rate;
+        status.textContent = "已更新：1 USD = " + formatNumber(rate, 6) + " CNY";
+        renderGrowthForecast();
+      } catch (error) {
+        status.textContent = "实时汇率获取失败，可手动输入 USD/CNY 汇率。";
+      }
+    }
+
+    function bind(ids, callback) {
+      ids.forEach((id) => {
+        document.getElementById(id).addEventListener("input", callback);
+        document.getElementById(id).addEventListener("change", callback);
+      });
+    }
+
+    bind(["totalAssetUsd", "assetPrice"], syncAssetFromTotal);
+    bind(["assetAmount"], syncTotalFromAssetAmount);
+    bind(["principalDai"], () => {
+      syncParticipationFromPrincipal();
+      renderAll();
+    });
+    bind(["participationLgnsAmount"], syncPrincipalFromParticipation);
+    bind(["incomeEstimateDay", "participationType", "reinvestMode"], renderAll);
+    bind(["dailyReleaseDai", "impactTokenPrice"], renderPriceImpact);
+    bind(["price", "amount", "days", "hours", "usdCnyRate"], renderGrowthForecast);
+
+    document.getElementById("useTotalAsPrincipal").addEventListener("click", useTotalAsPrincipal);
+    document.getElementById("refreshRate").addEventListener("click", refreshExchangeRate);
+    document.getElementById("calculate").addEventListener("click", renderGrowthForecast);
+
+    syncAssetFromTotal();
+    refreshExchangeRate();
+  </script>
+</body>
+</html>
