@@ -536,7 +536,7 @@
         <button type="button" id="calculate">重新计算预测</button>
       </div>
       <p class="result-line" id="growthResult"></p>
-      <p class="note">币量每 8 小时增加 0.15%，每天增长 3 次。Value（USD）= 币价 × 增长后币量。</p>
+      <p class="note">币量每 6 小时增加 0.15%，每天增长 4 次。Value（USD）= 币价 × 增长后币量。</p>
     </section>
   </main>
 
@@ -790,7 +790,7 @@
     }
 
     function calculateValue(coinPriceUsd, initialCoinAmount, elapsedHours, usdCnyRate) {
-      const growthTimes = Math.floor(elapsedHours / 8);
+      const growthTimes = Math.floor(elapsedHours / 6);
       const currentCoinAmount = initialCoinAmount * Math.pow(1.0015, growthTimes);
       const valueUsd = coinPriceUsd * currentCoinAmount;
       const valueCny = valueUsd * usdCnyRate;
