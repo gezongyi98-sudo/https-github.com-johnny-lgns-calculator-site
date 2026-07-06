@@ -509,6 +509,14 @@
       <h2>7. 币量指数增长预测</h2>
       <div class="input-grid">
         <label>
+          增长规则
+          <select id="growthMode">
+            <option value="short">短期增长：每 6 小时 +0.15%</option>
+            <option value="stake">长期质押：日化 +0.9% 复利</option>
+          </select>
+        </label>
+
+        <label>
           币价（USD）
           <input id="price" type="number" min="0" step="any" value="2.8">
         </label>
@@ -536,7 +544,7 @@
         <button type="button" id="calculate">重新计算预测</button>
       </div>
       <p class="result-line" id="growthResult"></p>
-      <p class="note">币量每 6 小时增加 0.15%，每天增长 4 次。Value（USD）= 币价 × 增长后币量。</p>
+      <p class="note" id="growthNote">短期增长：币量每 6 小时增加 0.15%，每天增长 4 次。长期质押：币量日化增加 0.9%，按天复利。Value（USD）= 币价 × 增长后币量。</p>
     </section>
   </main>
 
@@ -789,12 +797,23 @@
         `币价为 ${formatMoney(tokenPrice, "USD")} 时，每天到账约 <strong>${formatNumber(dailyRelease / tokenPrice, 4)} LGNS</strong>。`;
     }
 
-    function calculateValue(coinPriceUsd, initialCoinAmount, elapsedHours, usdCnyRate) {
-      const growthTimes = Math.floor(elapsedHours / 6);
-      const currentCoinAmount = initialCoinAmount * Math.pow(1.0015, growthTimes);
+    function calculateValue(coinPriceUsd, initialCoinAmount, elapsedHours, usdCnyRate, growthMode) {
+      const elapsedDays = elapsedHours / 24;
+      let growthLabel = "";
+      let currentCoinAmount = initialCoinAmount;
+
+      if (growthMode === "stake") {
+        currentCoinAmount = initialCoinAmount * Math.pow(1.009, elapsedDays);
+        growthLabel = `长期质押：${formatNumber(elapsedDays, 4)} 天复利`;
+      } else {
+        const growthTimes = Math.floor(elapsedHours / 6);
+        currentCoinAmount = initialCoinAmount * Math.pow(1.0015, growthTimes);
+        growthLabel = `短期增长：${growthTimes} 次`;
+      }
+
       const valueUsd = coinPriceUsd * currentCoinAmount;
       const valueCny = valueUsd * usdCnyRate;
-      return { growthTimes, currentCoinAmount, valueUsd, valueCny };
+      return { growthLabel, currentCoinAmount, valueUsd, valueCny };
     }
 
     function renderGrowthForecast() {
@@ -803,6 +822,7 @@
       const days = numberValue("days");
       const hours = numberValue("hours");
       const rate = numberValue("usdCnyRate");
+      const growthMode = document.getElementById("growthMode").value;
       const result = document.getElementById("growthResult");
 
       if (price < 0 || amount < 0 || days < 0 || hours < 0 || rate < 0 || !Number.isFinite(price + amount + days + hours + rate)) {
@@ -811,9 +831,9 @@
       }
 
       const totalHours = days * 24 + hours;
-      const calculated = calculateValue(price, amount, totalHours, rate);
+      const calculated = calculateValue(price, amount, totalHours, rate, growthMode);
       result.innerHTML =
-        `总小时数：<strong>${formatNumber(totalHours, 2)}</strong>；增长次数：<strong>${calculated.growthTimes}</strong>。<br>` +
+        `总小时数：<strong>${formatNumber(totalHours, 2)}</strong>；增长规则：<strong>${calculated.growthLabel}</strong>。<br>` +
         `增长后币量：<strong>${formatNumber(calculated.currentCoinAmount, 8)} LGNS</strong>。<br>` +
         `Value：<strong>${formatMoney(calculated.valueUsd, "USD")}</strong> / ${formatMoney(calculated.valueCny, "CNY")}。`;
     }
@@ -879,7 +899,7 @@
     bind(["participationLgnsAmount"], syncPrincipalFromParticipation);
     bind(["incomeEstimateDay", "participationType", "reinvestMode"], renderAll);
     bind(["dailyReleaseDai", "impactTokenPrice"], renderPriceImpact);
-    bind(["price", "amount", "days", "hours", "usdCnyRate"], renderGrowthForecast);
+    bind(["growthMode", "price", "amount", "days", "hours", "usdCnyRate"], renderGrowthForecast);
 
     document.getElementById("useTotalAsPrincipal").addEventListener("click", useTotalAsPrincipal);
     document.getElementById("refreshRate").addEventListener("click", refreshExchangeRate);
